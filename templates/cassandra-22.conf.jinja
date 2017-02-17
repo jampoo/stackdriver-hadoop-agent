@@ -1,0 +1,605 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+{% extends "jmx-metrics-base.jinja" %}
+{% block target %}Cassandra 2.2.x{% endblock %}
+{% block service %}Cassandra{% endblock %}
+{% block jmx_host_port_prefix %}CASSANDRA{% endblock %}
+{% block jmx_port %}7199{% endblock %}
+{% block mbean_list %}
+        {% call mbean("cassandra_storageservice-load", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=Storage,name=Load"
+            <Value>
+                Type "gauge"
+                InstancePrefix "storage_service-load"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_storageservice-exceptions", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=Storage,name=Exceptions"
+            <Value>
+                Type "counter"
+                InstancePrefix "storage_service-exception_count"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_commitlog-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=CommitLog,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "commitlog-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_commitlog-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=CommitLog,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "commitlog-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_commitlog-totalsize", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=CommitLog,name=TotalCommitLogSize"
+            <Value>
+                Type "gauge"
+                InstancePrefix "commitlog-total_size"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_compactionmanager-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=Compaction,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "compaction_manager-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_compactionmanager-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=Compaction,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "compaction_manager-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_stage_MutationStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=MutationStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "mutation_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_MutationStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=MutationStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "mutation_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_MutationStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=MutationStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "mutation_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_MutationStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=MutationStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "mutation_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_stage_ReadRepairStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadRepairStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "read_repair_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_ReadRepairStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadRepairStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "read_repair_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_ReadRepairStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadRepairStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "read_repair_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_ReadRepairStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadRepairStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "read_repair_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_stage_ReadStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "read_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_ReadStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "read_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_ReadStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "read_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_ReadStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=ReadStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "read_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_stage_RequestResponseStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=RequestResponseStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "request_response_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_RequestResponseStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=RequestResponseStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "request_response_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_RequestResponseStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=RequestResponseStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "request_response_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_stage_RequestResponseStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=request,scope=RequestResponseStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "request_response_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_AntiEntropySessions-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropySessions,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "anti_entropy_sessions-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_AntiEntropySessions-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropySessions,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "anti_entropy_sessions-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_AntiEntropySessions-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropySessions,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "anti_entropy_sessions-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_AntiEntropySessions-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropySessions,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "anti_entropy_sessions-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_AntiEntropyStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropyStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "anti_entropy_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_AntiEntropyStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropyStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "anti_entropy_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_AntiEntropyStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropyStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "anti_entropy_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_AntiEntropyStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=AntiEntropyStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "anti_entropy_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_FlushWriter-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtableFlushWriter,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "flush_writer-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_FlushWriter-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtableFlushWriter,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "flush_writer-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_FlushWriter-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtableFlushWriter,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "flush_writer-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_FlushWriter-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtableFlushWriter,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "flush_writer-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_GossipStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=GossipStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "gossip_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_GossipStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=GossipStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "gossip_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_GossipStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=GossipStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "gossip_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_GossipStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=GossipStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "gossip_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_HintedHandoff-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=HintedHandoff,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "hinted_handoff-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_HintedHandoff-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=HintedHandoff,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "hinted_handoff-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_HintedHandoff-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=HintedHandoff,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "hinted_handoff-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_HintedHandoff-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=HintedHandoff,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "hinted_handoff-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_InternalResponseStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=InternalResponseStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "internal_response_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_InternalResponseStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=InternalResponseStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "internal_response_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_InternalResponseStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=InternalResponseStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "internal_response_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_InternalResponseStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=InternalResponseStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "internal_response_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_MemtablePostFlusher-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtablePostFlush,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "memtable_post_flusher-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MemtablePostFlusher-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtablePostFlush,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "memtable_post_flusher-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MemtablePostFlusher-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtablePostFlush,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "memtable_post_flusher-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MemtablePostFlusher-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MemtablePostFlush,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "memtable_post_flusher-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_MigrationStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MigrationStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "migration_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MigrationStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MigrationStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "migration_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MigrationStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MigrationStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "migration_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MigrationStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MigrationStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "migration_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_MiscStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MiscStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "misc_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MiscStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MiscStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "misc_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MiscStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MiscStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "misc_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_MiscStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=MiscStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "misc_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("cassandra_internal_StreamStage-active", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=StreamStage,name=ActiveTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "stream_stage-active_count"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_StreamStage-blocked", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=StreamStage,name=CurrentlyBlockedTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "stream_stage-currently_blocked_tasks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_StreamStage-pending", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=StreamStage,name=PendingTasks"
+            <Value>
+                Type "gauge"
+                InstancePrefix "stream_stage-pending_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("cassandra_internal_StreamStage-completed", mbeans) -%}
+            ObjectName "org.apache.cassandra.metrics:type=ThreadPools,path=internal,scope=StreamStage,name=CompletedTasks"
+            <Value>
+                Type "counter"
+                InstancePrefix "stream_stage-completed_tasks"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+{% endblock mbean_list %}

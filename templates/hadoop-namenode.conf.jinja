@@ -1,0 +1,100 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+
+{#
+Remaining issues:
+2. add whitelist
+3. change the label
+4. translate the original metric name to Stackdriver metric type.
+
+#}
+
+{% extends "jmx-metrics-base.jinja" %}
+
+{% block target %}HDFS NameNode{% endblock %}
+{% block service %}NameNode{% endblock %}
+{% block jmx_host_port_prefix %}NAMENODE{% endblock %}
+{% block jmx_port %}8006{% endblock %}
+{# TODO: change namespace to dataproc.googleapis.com #}
+{% set stackdriver_metric_namespace = "custom.googleapis.com" %}
+{% set namenode_metric_list = [
+  ("CapacityTotal", "gauge", "capacity_bytes_sizs-operation:total-state:"),
+  ("FilesTotal", "gauge", "file_sizes-operation:total-state:")
+]%}
+
+{% block mbean_list %}
+        {% call mbean("hadoop-NameNode_FSNamesystem", mbeans) -%}
+            ObjectName "Hadoop:name=FSNamesystem,service=NameNode"
+            {% for jmx_metric_name, value_type, monarch_metric in namenode_metric_list %}
+            InstancePrefix = "FSNameSystem"
+            <Value>
+                Type "{{value_type}}"
+                InstancePrefix "{{monarch_metric}}"
+                # InstanceFrom "name"
+                Table false
+                Attribute "{{jmx_metric_name}}"
+            </Value>
+            {% endfor %}
+        {%- endcall %}
+{% endblock mbean_list %}
+
+{% block service_chains %}
+<Chain "GenericJMX_{{ self.service()|lower }}">
+    <Rule "rewrite_genericjmx_to_{{ self.service()|lower }}">
+        <Match regex>
+            Plugin "^GenericJMX$"
+            PluginInstance "^{{ self.service()|lower }}.*$"
+        </Match>
+        <Target "replace">
+            PluginInstance "{{ self.service()|lower }}" ""
+        </Target>
+        <Target "set">
+            Plugin "{{ self.service()|lower }}"
+        </Target>
+
+        <Target "set">
+            MetaData "stackdriver_metric_type" "{{stackdriver_metric_namespace}}/%{plugin_instance}/%{type_instance}"
+            MetaData "label:operation" "%{type_instance}"
+            MetaData "label:state" "%{type_instance}"
+        </Target>
+
+        <Target "replace">
+            MetaData "label:operation" ".*-operation:" ""
+            MetaData "label:state" ".*-state:" ""
+            MetaData "stackdriver_metric_type" "-.*$" ""
+        </Target>
+
+        <Target "replace">
+            MetaData "label:operation" "-state:.*" ""
+        </Target>
+
+    </Rule>
+    <Rule "go_back">
+        Target "return"
+    </Rule>
+</Chain>
+
+<Chain "PreCache">
+    <Rule "jump_to_GenericJMX_{{ self.service()|lower }}">
+        <Target "jump">
+            Chain "GenericJMX_{{ self.service()|lower }}"
+        </Target>
+    </Rule>
+</Chain>
+PreCacheChain "PreCache"
+
+{% endblock service_chains %}
+
+{# Disable the JVM metrics and chains #}
+{% block jvm_metrics %} {% endblock jvm_metrics %}
+{% block jvm_chains %} {% endblock jvm_chains %}

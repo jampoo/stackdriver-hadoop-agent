@@ -1,0 +1,107 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+{% extends "jmx-metrics-base.jinja" %}
+{% block target %}HBase Thrift{% endblock %}
+{% block service %}HBase{% endblock %}
+{% block instance_prefix %}hbasethrift{% endblock %}
+{% block jmx_host_alt_name %}HBASE_HOST{% endblock %}
+{% block jmx_port_alt_name %}HBASE_THRIFT_PORT{% endblock %}
+{% block jmx_port %}10103{% endblock %}
+{% block mbean_list %}
+        {% call mbean("hbase_thrift_ThriftOne", mbeans) -%}
+            ObjectName "Hadoop:service=HBase,name=Thrift,sub=ThriftOne"
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_one-callQueueLen"
+                Table false
+                Attribute "callQueueLen"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_one-SlowThriftCall_mean"
+                Table false
+                Attribute "SlowThriftCall_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_one-TimeInQueue_mean"
+                Table false
+                Attribute "TimeInQueue_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_one-ThriftCall_mean"
+                Table false
+                Attribute "ThriftCall_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_one-BatchGet_mean"
+                Table false
+                Attribute "BatchGet_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_one-BatchMutate_mean"
+                Table false
+                Attribute "BatchMutate_mean"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("hbase_thrift_ThriftTwo", mbeans) -%}
+            ObjectName "Hadoop:service=HBase,name=Thrift,sub=ThriftTwo"
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_two-callQueueLen"
+                Table false
+                Attribute "callQueueLen"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_two-SlowThriftCall_mean"
+                Table false
+                Attribute "SlowThriftCall_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_two-TimeInQueue_mean"
+                Table false
+                Attribute "TimeInQueue_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_two-ThriftCall_mean"
+                Table false
+                Attribute "ThriftCall_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_two-BatchGet_mean"
+                Table false
+                Attribute "BatchGet_mean"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "thrift_two-BatchMutate_mean"
+                Table false
+                Attribute "BatchMutate_mean"
+            </Value>
+        {%- endcall %}
+{% endblock mbean_list %}
+{% block jvm_metrics %}
+        {# TODO: find a way to collect JVM metrics from the thrift JVM #}
+{% endblock jvm_metrics %}
+{% block jvm_chains %}{% endblock %}

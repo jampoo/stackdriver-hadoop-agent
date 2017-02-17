@@ -1,0 +1,209 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+{% extends "jmx-metrics-base.jinja" %}
+{% block target %}HBase 0.98 and later running in distributed mode{% endblock %}
+{% block service %}HBase{% endblock %}
+{% block instance_prefix %}%(instance_prefix)s{% endblock %}
+{% block jmx_host_alt_name %}HBASE_HOST{% endblock %}
+{% block jmx_port_alt_name %}%(jmx_port_alt_name)s{% endblock %}
+{% block jmx_port %}%(jmx_port)s{% endblock %}
+{% block host_port_variables %}HBASE_HOST, HBASE_MASTER_PORT, and HBASE_REGIONSERVER_PORT{% endblock %}
+{% set master_mbeans = [] %}
+{% set regionserver_mbeans = [] %}
+{% block mbean_list %}
+        {% call mbean("hbase_master_Server", master_mbeans) -%}
+            ObjectName "Hadoop:service=HBase,name=Master,sub=Server"
+            <Value>
+                Type "gauge"
+                InstancePrefix "master-averageLoad"
+                Table false
+                Attribute "averageLoad"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "master-numRegionServers"
+                Table false
+                Attribute "numRegionServers"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "master-numDeadRegionServers"
+                Table false
+                Attribute "numDeadRegionServers"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("hbase_ipc_IPC", master_mbeans) -%}
+            ObjectName "Hadoop:service=HBase,name=IPC,sub=IPC"
+            <Value>
+                Type "counter"
+                InstancePrefix "ipc-sentBytes"
+                Table false
+                Attribute "sentBytes"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "ipc-receivedBytes"
+                Table false
+                Attribute "receivedBytes"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "ipc-queueSize"
+                Table false
+                Attribute "queueSize"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "ipc-numOpenConnections"
+                Table false
+                Attribute "numOpenConnections"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("hbase_regionserver_RegionServerStatistics", regionserver_mbeans) -%}
+            ObjectName "Hadoop:service=HBase,name=RegionServer,sub=Server"
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheCount"
+                Table false
+                Attribute "blockCacheCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheEvictedCount"
+                Table false
+                Attribute "blockCacheEvictionCount"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheFreeSize"
+                Table false
+                Attribute "blockCacheFreeSize"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheHitCount"
+                Table false
+                Attribute "blockCacheHitCount"
+            </Value>
+
+            # The two attributes below are identical; one is a renamed version of the other.
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheHitPercent"
+                Table false
+                # This is the name used in HBase 0.98 and earlier.
+                Attribute "blockCountHitPercent"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheHitPercent"
+                Table false
+                Attribute "blockCacheCountHitPercent"
+            </Value>
+
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheMissCount"
+                Table false
+                Attribute "blockCacheMissCount"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheSize"
+                Table false
+                Attribute "blockCacheSize"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-compactionQueueLength"
+                Table false
+                Attribute "compactionQueueLength"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-flushQueueLength"
+                Table false
+                Attribute "flushQueueLength"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-memStoreSize"
+                Table false
+                Attribute "memStoreSize"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-storeCount"
+                Table false
+                Attribute "storeCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-readRequestCount"
+                Table false
+                Attribute "readRequestCount"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-storeFileIndexSize"
+                Table false
+                Attribute "storeFileIndexSize"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-writeRequestCount"
+                Table false
+                Attribute "writeRequestCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-totalRequestCount"
+                Table false
+                Attribute "totalRequestCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-slowAppendCount"
+                Table false
+                Attribute "slowAppendCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-slowPutCount"
+                Table false
+                Attribute "slowPutCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-slowGetCount"
+                Table false
+                Attribute "slowGetCount"
+            </Value>
+        {%- endcall %}
+{% endblock mbean_list %}
+{% block connections %}
+  {% do mbeans.extend(master_mbeans) %}
+  {{- super()|format(jmx_port=10101, jmx_port_alt_name='HBASE_MASTER_PORT', instance_prefix='hbasemaster') }}
+  {% for i in range(0, mbeans|count) %}{% do mbeans.pop() %}{% endfor %}
+  {% do mbeans.extend(regionserver_mbeans) %}
+  {{- super()|format(jmx_port=10102, jmx_port_alt_name='HBASE_REGIONSERVER_PORT', instance_prefix='hbaseregionserver') -}}
+{% endblock connections %}
+{% block jvm_metrics %}
+        {# TODO: find a way to collect JVM metrics from both master and regionserver #}
+        {{- super()|format(jmx_port=10102, jmx_port_alt_name='HBASE_REGIONSERVER_PORT') -}}
+{% endblock jvm_metrics %}

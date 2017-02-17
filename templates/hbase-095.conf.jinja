@@ -1,0 +1,206 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+{% extends "jmx-metrics-base.jinja" %}
+{% block target %}HBase 0.95 and earlier{% endblock %}
+{% block service %}HBase{% endblock %}
+{% block jmx_host_alt_name %}HBASE_HOST{% endblock %}
+{% block jmx_port_alt_name %}HBASE_REGIONSERVER_PORT{% endblock %}
+{% block jmx_port %}10102{% endblock %}
+{% block instance_prefix %}hbaseregionserver{% endblock %}
+{% block mbean_list %}
+        {% call mbean("hbase_regionserver_RegionServerStatistics", mbeans) -%}
+            ObjectName "hadoop:service=RegionServer,name=RegionServerStatistics"
+            # The three attributes below are identical; they are renamed versions of each other.
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheHitPercent"
+                Table false
+                # This may be a name that was never used.
+                Attribute "blockCacheExpressCachingRatio"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheHitPercent"
+                Table false
+                # This is the name used in HBase 0.94 and earlier.
+                Attribute "blockCacheHitCachingRatio"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheHitPercent"
+                Table false
+                Attribute "blockCountHitPercent"
+            </Value>
+
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-callQueueLength"
+                Table false
+                Attribute "callQueueLength"
+            </Value>
+
+            # The two attributes below are identical; one is a renamed version of the other.
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-compactionQueueLength"
+                Table false
+                # This is the name used in HBase 0.94 and earlier.
+                Attribute "compactionQueueSize"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-compactionQueueLength"
+                Table false
+                Attribute "compactionQueueLength"
+            </Value>
+
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-flushQueueLength"
+                Table false
+                Attribute "flushQueueSize"
+            </Value>
+
+            <Value>
+                Type "gauge"
+                # Renamed for consistency with newer metrics.
+                InstancePrefix "regionserver-memStoreSizeMB"
+                Table false
+                Attribute "memstoreSizeMB"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-numberOfOnlineRegions"
+                Table false
+                Attribute "numberOfOnlineRegions"
+            </Value>
+            <Value>
+                Type "counter"
+                # Renamed for consistency with newer metrics.
+                InstancePrefix "regionserver-readRequestCount"
+                Table false
+                Attribute "readRequestsCount"
+            </Value>
+            <Value>
+                Type "counter"
+                # Renamed for consistency with newer metrics.
+                InstancePrefix "regionserver-writeRequestCount"
+                Table false
+                Attribute "writeRequestsCount"
+            </Value>
+            <Value>
+                Type "counter"
+                # Renamed for consistency with newer metrics.
+                InstancePrefix "regionserver-slowAppendCount"
+                Table false
+                Attribute "slowHLogAppendCount"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-usedHeapMB"
+                Table false
+                Attribute "usedHeapMB"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheCount"
+                Table false
+                Attribute "blockCacheCount"
+            </Value>
+
+            # The two attributes below are identical; one is a renamed version of the other.
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheEvictedCount"
+                Table false
+                # This is the name used in HBase 0.94 and earlier.
+                Attribute "blockCacheEvictedCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheEvictionCount"
+                Table false
+                Attribute "blockCacheEvictionCount"
+            </Value>
+
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheFreeMB"
+                Table false
+                Attribute "blockCacheFreeMB"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheHitCount"
+                Table false
+                Attribute "blockCacheHitCount"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "regionserver-blockCacheMissCount"
+                Table false
+                Attribute "blockCacheMissCount"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-blockCacheSizeMB"
+                Table false
+                Attribute "blockCacheSizeMB"
+            </Value>
+            <Value>
+                Type "gauge"
+                # Renamed for consistency with newer metrics.
+                InstancePrefix "regionserver-storeCount"
+                Table false
+                Attribute "NumberOfStores"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-NumberOfStorefiles"
+                Table false
+                Attribute "NumberOfStorefiles"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-requestsPerSecond"
+                Table false
+                Attribute "requestsPerSecond"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "regionserver-storeFileIndexSizeMB"
+                Table false
+                Attribute "storeFileIndexSizeMB"
+            </Value>
+        {%- endcall %}
+{% endblock mbean_list %}
+
+{% block extra_plugins %}
+LoadPlugin target_scale
+{% endblock extra_plugins %}
+{% block extra_rules %}
+    <Rule "scale_old_size_metrics">
+        <Match regex>
+            TypeInstance "^.*MB$"
+        </Match>
+        <Target "scale">
+            Factor 1048576  # 1024 * 1024
+        </Target>
+        <Target "replace">
+            TypeInstance "MB" ""
+        </Target>
+    </Rule>
+{% endblock extra_rules %}

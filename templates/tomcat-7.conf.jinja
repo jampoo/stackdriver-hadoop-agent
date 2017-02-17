@@ -1,0 +1,85 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+{% extends "jmx-metrics-base.jinja" %}
+{% block target %}Apache Tomcat 7.x and earlier.
+# Make sure to enable JMX in your Tomcat configuration{% endblock %}
+{% block service %}Tomcat{% endblock %}
+{% block jmx_host_port_prefix %}TOMCAT{% endblock %}
+{% block jmx_port %}9012{% endblock %}
+{% block mbean_list %}
+        {% call mbean("tomcat_connectors", mbeans) -%}
+            ObjectName "Catalina:type=ThreadPool,name=*"
+            InstanceFrom "name"
+            <Value>
+                Type "gauge"
+                InstancePrefix "connectors-current_threads"
+                Table false
+                Attribute "currentThreadCount"
+            </Value>
+            <Value>
+                Type "gauge"
+                InstancePrefix "connectors-busy_threads"
+                Table false
+                Attribute "currentThreadsBusy"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("tomcat_manager", mbeans) -%}
+            ObjectName "Catalina:type=Manager,context=*,host=*"
+            InstanceFrom "context"
+            <Value>
+                Type "gauge"
+                InstancePrefix "manager-active_sessions"
+                Table false
+                Attribute "activeSessions"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("tomcat_requestProcessor", mbeans) -%}
+            ObjectName "Catalina:type=GlobalRequestProcessor,name=*"
+            InstanceFrom "name"
+            <Value>
+                Type "counter"
+                InstancePrefix "request_processor-bytes_received"
+                Table false
+                Attribute "bytesReceived"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "request_processor-bytes_sent"
+                Table false
+                Attribute "bytesSent"
+            </Value>
+            <Value>
+                Type "counter"
+                InstancePrefix "request_processor-processing_time"
+                Table false
+                Attribute "processingTime"
+            </Value>
+            <Value>
+                Type "absolute"
+                InstancePrefix "request_processor-request_count"
+                Table false
+                Attribute "requestCount"
+            </Value>
+            <Value>
+                Type "absolute"
+                InstancePrefix "request_processor-error_count"
+                Table false
+                Attribute "errorCount"
+            </Value>
+        {%- endcall %}
+{% endblock mbean_list %}

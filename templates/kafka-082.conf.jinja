@@ -1,0 +1,246 @@
+{#
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#}
+{% extends "jmx-metrics-base.jinja" %}
+{% block target %}Apache Kafka 0.8.2 and later{% endblock %}
+{% block service %}Kafka{% endblock %}
+{% block jmx_host_port_prefix %}KAFKA{% endblock %}
+{% block jmx_port %}9999{% endblock %}
+{% block mbean_list %}
+        {% call mbean("kafka_log-LogFlushStats_LogFlush", mbeans) -%}
+            ObjectName "kafka.log:type=LogFlushStats,name=LogFlushRateAndTimeMs"
+            <Value>
+                Type "counter"
+                InstancePrefix "log-LogFlushes"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_server-BrokerTopicMetrics_AllTopicsBytesIn", mbeans) -%}
+            ObjectName "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_broker_topics-AllTopicsBytesIn"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-BrokerTopicMetrics_AllTopicsFailedFetchRequests", mbeans) -%}
+            ObjectName "kafka.server:type=BrokerTopicMetrics,name=FailedFetchRequestsPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_broker_topics-AllTopicsFailedFetchRequests"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-BrokerTopicMetrics_AllTopicsFailedProduceRequests", mbeans) -%}
+            ObjectName "kafka.server:type=BrokerTopicMetrics,name=FailedProduceRequestsPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_broker_topics-AllTopicsFailedProduceRequests"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-BrokerTopicMetrics_AllTopicsMessagesIn", mbeans) -%}
+            ObjectName "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_broker_topics-AllTopicsMessagesIn"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-BrokerTopicMetrics_AllTopicsBytesOut", mbeans) -%}
+            ObjectName "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_broker_topics-AllTopicsBytesOut"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_server-ReplicaManager_UnderReplicatedPartitions", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaManager,name=UnderReplicatedPartitions"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_replica_manager-UnderReplicatedPartitions"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-ReplicaManager_PartitionCount", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaManager,name=PartitionCount"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_replica_manager-PartitionCount"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-ReplicaManager_LeaderCount", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaManager,name=LeaderCount"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_replica_manager-LeaderCount"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-ReplicaManager_ISRShrinks", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaManager,name=IsrShrinksPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_replica_manager-ISRShrinks"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-ReplicaManager_ISRExpands", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaManager,name=IsrExpandsPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "server_replica_manager-ISRExpands"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_server-ReplicaFetcherManager_MaxLag", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaFetcherManager,name=MaxLag,clientId=Replica"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_replica_fetcher-MaxLag"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-ReplicaFetcherManager_MinFetchRate", mbeans) -%}
+            ObjectName "kafka.server:type=ReplicaFetcherManager,name=MinFetchRate,clientId=Replica"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_replica_fetcher-MinFetchRate"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_server-ProducerRequestPurgatory_NumDelayedRequests", mbeans) -%}
+            ObjectName "kafka.server:type=ProducerRequestPurgatory,name=NumDelayedRequests"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_purgatory-Producer-NumDelayedRequests"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-ProducerRequestPurgatory_PurgatorySize", mbeans) -%}
+            ObjectName "kafka.server:type=ProducerRequestPurgatory,name=PurgatorySize"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_purgatory-Producer-PurgatorySize"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_server-FetchRequestPurgatory_NumDelayedRequests", mbeans) -%}
+            ObjectName "kafka.server:type=FetchRequestPurgatory,name=NumDelayedRequests"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_purgatory-Fetch-NumDelayedRequests"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_server-FetchRequestPurgatory_PurgatorySize", mbeans) -%}
+            ObjectName "kafka.server:type=FetchRequestPurgatory,name=PurgatorySize"
+            <Value>
+                Type "gauge"
+                InstancePrefix "server_purgatory-Fetch-PurgatorySize"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_network-RequestMetrics_ProduceRequests", mbeans) -%}
+            ObjectName "kafka.network:type=RequestMetrics,name=RequestsPerSec,request=Produce"
+            <Value>
+                Type "counter"
+                InstancePrefix "network-ProduceRequests"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_network-RequestMetrics_FetchFollowerRequests", mbeans) -%}
+            ObjectName "kafka.network:type=RequestMetrics,name=RequestsPerSec,request=FetchFollower"
+            <Value>
+                Type "counter"
+                InstancePrefix "network-FetchFollowerRequests"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_network-RequestMetrics_FetchConsumerRequests", mbeans) -%}
+            ObjectName "kafka.network:type=RequestMetrics,name=RequestsPerSec,request=FetchConsumer"
+            <Value>
+                Type "counter"
+                InstancePrefix "network-FetchConsumerRequests"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_controller-KafkaController_ActiveControllerCount", mbeans) -%}
+            ObjectName "kafka.controller:type=KafkaController,name=ActiveControllerCount"
+            <Value>
+                Type "gauge"
+                InstancePrefix "controller_kafka-ActiveControllerCount"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_controller-KafkaController_OfflinePartitionsCount", mbeans) -%}
+            ObjectName "kafka.controller:type=KafkaController,name=OfflinePartitionsCount"
+            <Value>
+                Type "gauge"
+                InstancePrefix "controller_kafka-OfflinePartitionsCount"
+                Table false
+                Attribute "Value"
+            </Value>
+        {%- endcall %}
+
+        {% call mbean("kafka_controller-ControllerStats_LeaderElections", mbeans) -%}
+            ObjectName "kafka.controller:type=ControllerStats,name=LeaderElectionRateAndTimeMs"
+            <Value>
+                Type "counter"
+                InstancePrefix "controller-LeaderElections"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+        {% call mbean("kafka_controller-ControllerStats_UncleanLeaderElections", mbeans) -%}
+            ObjectName "kafka.controller:type=ControllerStats,name=UncleanLeaderElectionsPerSec"
+            <Value>
+                Type "counter"
+                InstancePrefix "controller-UncleanLeaderElections"
+                Table false
+                Attribute "Count"
+            </Value>
+        {%- endcall %}
+{% endblock mbean_list %}

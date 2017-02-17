@@ -1,0 +1,128 @@
+
+{% macro mbean_value(type, jmx_metric_name) %}
+            <Value>
+                Type "{{ type }}"
+                InstancePrefix "{{jmx_metric_name}}"
+                Table false
+                Attribute "{{jmx_metric_name}}"
+            </Value>
+            {{ caller() }}
+{% endmacro %}
+
+{% macro mbean_value_list(metric_list) %}
+    {% for type, attribute in metric_list %}
+        {% call mbean_value(type, attribute) %}
+        {% endcall %}
+    {% endfor %}
+    {{ caller() }}
+{% endmacro %}
+
+{% macro mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+        <MBean "{{mbean_name}}">
+            ObjectName "{{jmx_obj_name}}"
+            InstancePrefix = "{{context}}/"
+            InstanceFrom = "name"
+            {% call mbean_value_list(metric_list) %}
+            {% endcall %}
+        </MBean>
+        {{ caller() }}
+{% endmacro %}
+
+{% macro connection(port, mbean_list) %}
+        <Connection>
+            Host "localhost"
+            ServiceURL "service:jmx:rmi:///jndi/rmi://localhost:{{port}}/jmxrmi"
+            {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
+            Collect "{{mbean_name}}"
+            {% endfor %}
+        </Connection>
+        {{ caller() }}
+{% endmacro %}
+
+{% macro create_mbean(mbean_list) %}
+        {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
+            {% call mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+            {% endcall %}
+        {% endfor %}
+{{ caller() }}
+{% endmacro %}
+
+{% set fs_name_system_metric_list = [
+  ("gauge", "CapacityTotal"),
+  ("gauge", "FilesTotal")
+]%}
+
+{% set namenode_activity_metric_list = [
+  ("counter", "CreateFileOps"),
+  ("counter", "FilesCreated")
+]%}
+
+{% set cluster_metrics_list = [
+  ("gauge", "NumActiveNMs"),
+  ("gauge", "NumDecommissionedNMs")
+]%}
+
+{% set queue_metrics_list = [
+  ("gauge", "PendingContainers"),
+  ("gauge", "AllocatedContainers")
+]%}
+
+{% set hdfs_mbean_list = [
+  ("dfs", "NameNode", "Hadoop:name=NameNodeActivity,service=NameNode", namenode_activity_metric_list),
+  ("dfs", "FSNamesystem", "Hadoop:name=FSNamesystem,service=NameNode", fs_name_system_metric_list)
+
+]%}
+
+{% set yarn_mbean_list = [
+  ("yarn", "ClusterMetrics", "Hadoop:name=ClusterMetrics,service=ResourceManager", cluster_metrics_list),
+  ("yarn", "QueueMetrics", "Hadoop:name=QueueMetrics,q0=root,service=ResourceManager", queue_metrics_list)
+]%}
+
+LoadPlugin java
+LoadPlugin match_regex
+LoadPlugin target_set
+LoadPlugin target_replace
+
+<Plugin "java">
+    JVMARG "-Djava.class.path=/opt/stackdriver/collectd/share/collectd/java/collectd-api.jar:/opt/stackdriver/collectd/share/collectd/java/generic-jmx.jar"
+    LoadPlugin "org.collectd.java.GenericJMX"
+
+    <Plugin "GenericJMX">
+
+        {% call create_mbean(hdfs_mbean_list) %}{% endcall %}
+        {% call create_mbean(yarn_mbean_list) %}{% endcall %}
+        
+        {% call connection(8006, hdfs_mbean_list)%}{% endcall %}
+        {% call connection(8008, yarn_mbean_list)%}{% endcall %}
+
+     </Plugin>
+</Plugin>
+
+
+<Chain "GenericJMX_hadoop">
+    <Rule "rewrite_genericjmx_to_hadoop">
+        <Match regex>
+            Plugin "^GenericJMX$"
+        </Match>
+        <Target "replace">
+            PluginInstance "_" "/"
+        </Target>
+        <Target "set">
+            MetaData "stackdriver_metric_type" "custom.googleapis.com/%{plugin_instance}/%{type_instance}"
+            # MetaData "label:service_name" "dataproc"
+        </Target>
+
+    </Rule>
+    <Rule "go_back">
+        Target "return"
+    </Rule>
+</Chain>
+
+<Chain "PreCache">
+    <Rule "jump_to_GenericJMX_hadoop">
+        <Target "jump">
+            Chain "GenericJMX_hadoop"
+        </Target>
+    </Rule>
+</Chain>
+PreCacheChain "PreCache"
