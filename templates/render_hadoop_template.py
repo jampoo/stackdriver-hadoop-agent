@@ -22,27 +22,67 @@ import jinja2
 import os.path
 import sys
 import csv
+import subprocess
 
 hadoop_conf_jinja_file = './hadoop-custom-metrics.conf.jinja'
 hadoop_metric_whitelist = './hadoop-metric-whitelist.csv'
+stackdriver_agent_plugin_dir = '/opt/stackdriver/collectd/etc/collectd.d/'
+hadoop_env_file = '/etc/hadoop/conf/hadoop-env.sh'
+yarn_env_file = '/etc/hadoop/conf/yarn-env.sh'
 
 hadoop_metrics_upload_list = []
 
-with open(hadoop_metric_whitelist, 'rb') as csvfile:
-    csvreader = csv.DictReader(csvfile)
-    for row in csvreader:
-        if row['upload'] == 'TRUE':
-#            metric_name_concat = '-'.join([row['context'], row['service'], row['name']])
-            metric_name_concat = row['name']
-            hadoop_metrics_upload_list.append(metric_name_concat)
+jxm_opts_conf = """
+### JMX settings
+export JMX_OPTS=" -Dcom.sun.management.jmxremote.authenticate=false
+    -Dcom.sun.management.jmxremote.ssl=false
+    -Dcom.sun.management.jmxremote.port"
+"""
 
-#print hadoop_metrics_upload_list
+hadoop_env_conf_addon = jxm_opts_conf + """
+export HADOOP_NAMENODE_OPTS="$JMX_OPTS=8006 $HADOOP_NAMENODE_OPTS"
+export HADOOP_SECONDARYNAMENODE_OPTS="$HADOOP_SECONDARYNAMENODE_OPTS"
+export HADOOP_DATANODE_OPTS="$JMX_OPTS=8006 $HADOOP_DATANODE_OPTS"
+"""
+yarn_env_conf_addon = jxm_opts_conf + """
+export YARN_OPTS="$JMX_OPTS=8008 $YARN_OPTS"
+"""
 
-env = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(os.path.dirname(sys.argv[0]) or "."),
-    trim_blocks=True,
-    lstrip_blocks=True,
-    extensions=['jinja2.ext.do'])
+def setup_hadoop_jmx_port() :
+    with open(hadoop_env_file, 'a') as hadoop_env:
+        hadoop_env.write(hadoop_env_conf_addon)
+    with open(yarn_env_file, 'a') as yarn_env:
+        yarn_env.write(yarn_env_conf_addon)
 
-print env.get_template(hadoop_conf_jinja_file).render(upload_list = hadoop_metrics_upload_list)
+def create_stackdriver_plugin() :
+    with open(hadoop_metric_whitelist, 'rb') as csvfile:
+        csvreader = csv.DictReader(csvfile)
+        for row in csvreader:
+            if row['upload'] == 'TRUE':
+    #            metric_name_concat = '-'.join([row['context'], row['service'], row['name']])
+                metric_name_concat = row['name']
+                hadoop_metrics_upload_list.append(metric_name_concat)
+
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(os.path.dirname(sys.argv[0]) or "."),
+        trim_blocks=True,
+        lstrip_blocks=True,
+        extensions=['jinja2.ext.do'])
+
+    # write to plugin file.
+    file_plugin = open(stackdriver_agent_plugin_dir + 'hadoop.conf', 'w')
+    file_plugin.write(env.get_template(hadoop_conf_jinja_file).render(upload_list = hadoop_metrics_upload_list))
+
+def restart_daemons() :
+    subprocess.Popen('service hadoop-hdfs-namenode restart')
+    subprocess.Popen('service hadoop-yarn-resourcemanager restart')
+    subprocess.Popen('service stackdriver-agent restart')
+    
+def main():
+    setup_hadoop_jmx_port()
+#    create_stackdriver_plugin()
+#    restart_daemons()
+
+if __name__ == "__main__":
+    main()
 
