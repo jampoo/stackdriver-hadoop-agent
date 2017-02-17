@@ -39,7 +39,7 @@
         {{ caller() }}
 {% endmacro %}
 
-{% macro create_mbean_list(mbean_list) %}
+{% macro create_mbean(mbean_list) %}
         {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
             {% call mbean(context, mbean_name, jmx_obj_name, metric_list) %}
             {% endcall %}
@@ -89,8 +89,8 @@ LoadPlugin target_replace
 
     <Plugin "GenericJMX">
 
-        {% call create_mbean_list(hdfs_mbean_list) %}{% endcall %}
-        {% call create_mbean_list(yarn_mbean_list) %}{% endcall %}
+        {% call create_mbean(hdfs_mbean_list) %}{% endcall %}
+        {% call create_mbean(yarn_mbean_list) %}{% endcall %}
         
         {% call connection(8006, hdfs_mbean_list)%}{% endcall %}
         {% call connection(8008, yarn_mbean_list)%}{% endcall %}

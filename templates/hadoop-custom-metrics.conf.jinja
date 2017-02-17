@@ -28,6 +28,14 @@
         {{ caller() }}
 {% endmacro %}
 
+{% macro create_mbean(mbean_list) %}
+        {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
+            {% call mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+            {% endcall %}
+        {% endfor %}
+{{ caller() }}
+{% endmacro %}
+
 {% macro connection(port, mbean_list) %}
         <Connection>
             Host "localhost"
@@ -39,13 +47,7 @@
         {{ caller() }}
 {% endmacro %}
 
-{% macro create_mbean(mbean_list) %}
-        {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
-            {% call mbean(context, mbean_name, jmx_obj_name, metric_list) %}
-            {% endcall %}
-        {% endfor %}
-{{ caller() }}
-{% endmacro %}
+
 
 {% set fs_name_system_metric_list = [
   ("gauge", "CapacityTotal"),
