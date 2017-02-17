@@ -80,8 +80,8 @@ def restart_daemons() :
     
 def main():
     setup_hadoop_jmx_port()
-#    create_stackdriver_plugin()
-#    restart_daemons()
+    create_stackdriver_plugin()
+    restart_daemons()
 
 if __name__ == "__main__":
     main()
