@@ -32,7 +32,8 @@ with open(hadoop_metric_whitelist, 'rb') as csvfile:
     csvreader = csv.DictReader(csvfile)
     for row in csvreader:
         if row['upload'] == 'TRUE':
-            metric_name_concat = '-'.join([row['context'], row['service'], row['name']])
+#            metric_name_concat = '-'.join([row['context'], row['service'], row['name']])
+            metric_name_concat = row['name']
             hadoop_metrics_upload_list.append(metric_name_concat)
 
 #print hadoop_metrics_upload_list

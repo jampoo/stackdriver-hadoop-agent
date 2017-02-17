@@ -1,5 +1,6 @@
 
 {% macro mbean_value(type, jmx_metric_name) %}
+    {% if jmx_metric_name in upload_list %}
             <Value>
                 Type "{{ type }}"
                 InstancePrefix "{{jmx_metric_name}}"
@@ -7,6 +8,7 @@
                 Attribute "{{jmx_metric_name}}"
             </Value>
             {{ caller() }}
+    {% endif %}
 {% endmacro %}
 
 {% macro mbean_value_list(metric_list) %}
@@ -128,6 +130,5 @@ LoadPlugin target_replace
     </Rule>
 </Chain>
 PreCacheChain "PreCache"
-
 
 {{upload_list}}
