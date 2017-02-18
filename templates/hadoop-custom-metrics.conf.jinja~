@@ -131,4 +131,4 @@ LoadPlugin target_replace
 </Chain>
 PreCacheChain "PreCache"
 
-{{upload_list}}
+
