@@ -23,6 +23,7 @@ import os.path
 import sys
 import csv
 import subprocess
+import argparse
 
 hadoop_conf_jinja_file = './hadoop-custom-metrics.conf.jinja'
 hadoop_metric_whitelist = './hadoop-metric-whitelist.csv'
@@ -53,6 +54,7 @@ def setup_hadoop_jmx_port() :
         hadoop_env.write(hadoop_env_conf_addon)
     with open(yarn_env_file, 'a') as yarn_env:
         yarn_env.write(yarn_env_conf_addon)
+    print "Complete setting up jmx port on Hadoop."
 
 def create_stackdriver_plugin() :
     with open(hadoop_metric_whitelist, 'rb') as csvfile:
@@ -72,16 +74,28 @@ def create_stackdriver_plugin() :
     # write to plugin file.
     file_plugin = open(stackdriver_agent_plugin_dir + 'hadoop.conf', 'w')
     file_plugin.write(env.get_template(hadoop_conf_jinja_file).render(upload_list = hadoop_metrics_upload_list))
+    file_plugin.write('\n\n') # add empty lines in the end of plugin config.
+    print "Complete creating the Stackdriver monitoring agent plugin."
 
 def restart_daemons() :
     subprocess.Popen('service hadoop-hdfs-namenode restart')
     subprocess.Popen('service hadoop-yarn-resourcemanager restart')
     subprocess.Popen('service stackdriver-agent restart')
+    print "Complete restarting all daemons."
     
 def main():
-    setup_hadoop_jmx_port()
-    create_stackdriver_plugin()
-    restart_daemons()
+    parser = argparse.ArgumentParser(description='Setup the Stackdriver agent to collect Hadoop metrics.')
+    parser.add_argument('-j', '--jmx_port', action = 'store_true', default=False)
+    parser.add_argument('-s', '--stackdriver_plugin', action = 'store_true', default=False)
+    parser.add_argument('-d', '--daemons_restart', action = 'store_true', default=False)
+    args = parser.parse_args()
+    if args.jmx_port :
+        setup_hadoop_jmx_port()
+    if args.stackdriver_plugin :
+        create_stackdriver_plugin()
+    if args.daemons_restart :
+        restart_daemons()
+    sys.exist(0)
 
 if __name__ == "__main__":
     main()
