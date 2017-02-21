@@ -95,7 +95,6 @@ def main():
         create_stackdriver_plugin()
     if args.daemons_restart :
         restart_daemons()
-    sys.exist(0)
 
 if __name__ == "__main__":
     main()
