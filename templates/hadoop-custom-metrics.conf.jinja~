@@ -228,13 +228,14 @@
 
 {% set hdfs_mbean_list = [
   ("dfs", "NameNode", "Hadoop:name=NameNodeActivity,service=NameNode", namenode_activity_metric_list),
-  ("dfs", "FSNamesystem", "Hadoop:name=FSNamesystem,service=NameNode", fs_name_system_metric_list)
-  {# add the datanode here #}
+  ("dfs", "FSNamesystem", "Hadoop:name=FSNamesystem,service=NameNode", fs_name_system_metric_list),
+  ("dfs", "DataNode", "")
 ]%}
 
 {% set yarn_mbean_list = [
   ("yarn", "ClusterMetrics", "Hadoop:name=ClusterMetrics,service=ResourceManager", cluster_metrics_list),
-  ("yarn", "QueueMetrics", "Hadoop:name=QueueMetrics,q0=root,service=ResourceManager", queue_metrics_list)
+  ("yarn", "QueueMetrics", "Hadoop:name=QueueMetrics,q0=root,service=ResourceManager", queue_metrics_list),
+  ("yarn", "NodeManagerMetrics", "Hadoop:name=NodeManagerMetrics,service=NodeManager", nodemanager_metrics_list)
 ]%}
 
 LoadPlugin java

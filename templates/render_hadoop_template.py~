@@ -31,7 +31,7 @@ stackdriver_agent_plugin_dir = '/opt/stackdriver/collectd/etc/collectd.d/'
 hadoop_env_file = '/etc/hadoop/conf/hadoop-env.sh'
 yarn_env_file = '/etc/hadoop/conf/yarn-env.sh'
 
-hadoop_metrics_upload_list = []
+
 
 jxm_opts_conf = """
 ### JMX settings
@@ -49,6 +49,23 @@ yarn_env_conf_addon = jxm_opts_conf + """
 export YARN_OPTS="$JMX_OPTS=8008 $YARN_OPTS"
 """
 
+def read_metric_list_from_textfile(text_file):
+    hadoop_metrics_upload_list = []
+    for line in text_file.readlines():
+        metric_name = line.split('.')[-1].strip()
+        hadoop_metrics_upload_list.append(metric_name)
+    return hadoop_metrics_upload_list
+    
+
+def read_metric_list_from_csvfile(csv_file):
+    hadoop_metrics_upload_list = []
+    csvreader = csv.DictReader(csvfile)
+    for row in csvreader:
+        if row['upload'] == 'TRUE':
+            metric_name = row['name']
+            hadoop_metrics_upload_list.append(metric_name)
+    return hadoop_metrics_upload_list
+
 def setup_hadoop_jmx_port() :
     with open(hadoop_env_file, 'a') as hadoop_env:
         hadoop_env.write(hadoop_env_conf_addon)
@@ -56,26 +73,20 @@ def setup_hadoop_jmx_port() :
         yarn_env.write(yarn_env_conf_addon)
     print "Complete setting up jmx port on Hadoop."
 
-def create_stackdriver_plugin() :
-    with open(hadoop_metric_whitelist, 'rb') as csvfile:
-        csvreader = csv.DictReader(csvfile)
-        for row in csvreader:
-            if row['upload'] == 'TRUE':
-    #            metric_name_concat = '-'.join([row['context'], row['service'], row['name']])
-                metric_name_concat = row['name']
-                hadoop_metrics_upload_list.append(metric_name_concat)
-
+def create_stackdriver_plugin(hadoop_metrics_upload_list) :
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(os.path.dirname(sys.argv[0]) or "."),
         trim_blocks=True,
         lstrip_blocks=True,
         extensions=['jinja2.ext.do'])
+        
+    print env.get_template(hadoop_conf_jinja_file).render(upload_list = hadoop_metrics_upload_list)
 
     # write to plugin file.
-    file_plugin = open(stackdriver_agent_plugin_dir + 'hadoop.conf', 'w')
-    file_plugin.write(env.get_template(hadoop_conf_jinja_file).render(upload_list = hadoop_metrics_upload_list))
-    file_plugin.write('\n\n') # add empty lines in the end of plugin config.
-    print "Complete creating the Stackdriver monitoring agent plugin."
+#    file_plugin = open(stackdriver_agent_plugin_dir + 'hadoop.conf', 'w')
+#    file_plugin.write(env.get_template(hadoop_conf_jinja_file).render(upload_list = hadoop_metrics_upload_list))
+#    file_plugin.write('\n\n') # add empty lines in the end of plugin config.
+#    print "Complete creating the Stackdriver monitoring agent plugin."
 
 def restart_daemons() :
     subprocess.Popen('service hadoop-hdfs-namenode restart')
@@ -85,17 +96,21 @@ def restart_daemons() :
     
 def main():
     parser = argparse.ArgumentParser(description='Setup the Stackdriver agent to collect Hadoop metrics.')
-    parser.add_argument('-j','--jmx_port', action = 'store_true', default=False)
-    parser.add_argument('-s','--stackdriver_plugin', action = 'store_true', default=False)
-    parser.add_argument('-d','--daemons_restart', action = 'store_true', default=False)
+    parser.add_argument('-j', '--jmx_port', action = 'store_true', default=False)
+    parser.add_argument('-c', '--csv', type=file)
+    parser.add_argument('-d', '--daemons_restart', action = 'store_true', default=False)
+    parser.add_argument('-t', '--text', type=file)
     args = parser.parse_args()
     if args.jmx_port :
         setup_hadoop_jmx_port()
-    if args.stackdriver_plugin :
-        create_stackdriver_plugin()
     if args.daemons_restart :
         restart_daemons()
-    sys.exist(0)
+    if args.text is not None :
+        metric_list = read_metric_list_from_textfile(args.text)
+        create_stackdriver_plugin(metric_list)
+    if args.csv is not None:
+        metric_list = read_metric_list_from_csvfile(args.csv)
+        create_stackdriver_plugin(metric_list)
 
 if __name__ == "__main__":
     main()
