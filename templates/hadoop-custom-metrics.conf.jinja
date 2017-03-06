@@ -251,8 +251,8 @@ LoadPlugin target_replace
         {% call create_mbean(hdfs_mbean_list) %}{% endcall %}
         {% call create_mbean(yarn_mbean_list) %}{% endcall %}
         
-        {% call connection(8006, hdfs_mbean_list)%}{% endcall %}
-        {% call connection(8008, yarn_mbean_list)%}{% endcall %}
+        {% call connection(8551, hdfs_mbean_list)%}{% endcall %}
+        {% call connection(8554, yarn_mbean_list)%}{% endcall %}
 
      </Plugin>
 </Plugin>
