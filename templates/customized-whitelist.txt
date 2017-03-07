@@ -1,0 +1,5 @@
+FSNamesystem.CapacityTotalGB
+FSNamesystem.CapacityUsedGB
+FSNamesystem.CapacityRemainingGB
+QueueMetrics.PendingContainers
+QueueMetrics.ActiveApplications

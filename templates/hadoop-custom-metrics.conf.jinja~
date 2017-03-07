@@ -1,5 +1,5 @@
 
-{% macro mbean_value(type, jmx_metric_name) %}
+{% macro create_value(type, jmx_metric_name) %}
     {% if jmx_metric_name in upload_list %}
             <Value>
                 Type "{{ type }}"
@@ -11,34 +11,34 @@
     {% endif %}
 {% endmacro %}
 
-{% macro mbean_value_list(metric_list) %}
+{% macro create_value_list(metric_list) %}
     {% for type, attribute in metric_list %}
-        {% call mbean_value(type, attribute) %}
+        {% call create_value(type, attribute) %}
         {% endcall %}
     {% endfor %}
     {{ caller() }}
 {% endmacro %}
 
-{% macro mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+{% macro create_mbean(context, mbean_name, jmx_obj_name, metric_list) %}
         <MBean "{{mbean_name}}">
             ObjectName "{{jmx_obj_name}}"
             InstancePrefix = "{{context}}/"
             InstanceFrom = "name"
-            {% call mbean_value_list(metric_list) %}
+            {% call create_value_list(metric_list) %}
             {% endcall %}
         </MBean>
         {{ caller() }}
 {% endmacro %}
 
-{% macro create_mbean(mbean_list) %}
+{% macro create_mbean_list(mbean_list) %}
         {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
-            {% call mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+            {% call create_mbean(context, mbean_name, jmx_obj_name, metric_list) %}
             {% endcall %}
         {% endfor %}
 {{ caller() }}
 {% endmacro %}
 
-{% macro connection(port, mbean_list) %}
+{% macro create_connection(port, mbean_list) %}
         <Connection>
             Host "localhost"
             ServiceURL "service:jmx:rmi:///jndi/rmi://localhost:{{port}}/jmxrmi"
@@ -252,7 +252,7 @@ LoadPlugin target_replace
         {% call create_mbean(yarn_mbean_list) %}{% endcall %}
         
         {% call connection(8551, hdfs_mbean_list)%}{% endcall %}
-        {% call connection(8008, yarn_mbean_list)%}{% endcall %}
+        {% call connection(8554, yarn_mbean_list)%}{% endcall %}
 
      </Plugin>
 </Plugin>
