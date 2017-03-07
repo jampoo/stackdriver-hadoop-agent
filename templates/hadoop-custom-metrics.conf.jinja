@@ -1,6 +1,7 @@
 
-{% macro create_value(type, jmx_metric_name) %}
-    {% if jmx_metric_name in upload_list %}
+{% macro create_value(service, type, jmx_metric_name) %}
+    {% set service_attribute = service + '.' + jmx_metric_name %}
+    {% if service_attribute in attribute_list %}
             <Value>
                 Type "{{ type }}"
                 InstancePrefix "{{jmx_metric_name}}"
@@ -11,32 +12,25 @@
     {% endif %}
 {% endmacro %}
 
-{% macro create_value_list(metric_list) %}
-    {% for type, attribute in metric_list %}
-        {% call create_value(type, attribute) %}
+{% macro create_value_list(mbean_name, metric_list) %}
+    {% for attribute, type in metric_list %}
+        {% call create_value(mbean_name, type, attribute) %}
         {% endcall %}
     {% endfor %}
     {{ caller() }}
 {% endmacro %}
 
-{% macro create_mbean_internal(context, mbean_name, jmx_obj_name, metric_list) %}
+{% macro create_mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+		{% if mbean_name in service_list %}
         <MBean "{{mbean_name}}">
             ObjectName "{{jmx_obj_name}}"
             InstancePrefix = "{{context}}/"
             InstanceFrom = "name"
-            {% call create_value_list(metric_list) %}
+            {% call create_value_list(mbean_name, metric_list) %}
             {% endcall %}
         </MBean>
         {{ caller() }}
-{% endmacro %}
-
-{% macro create_mbean(context, mbean_name, jmx_obj_name, metric_list) %}
-    {% for type, attribute in metric_list %}
-        {% if attribute in upload_list %}
-            create_mbean_internal(context, mbean_name, jmx_obj_name, metric_list)
-            
-        {% endif %}
-    {% endfor %}
+    {% endif %}
 {% endmacro %}
 
 {% macro create_mbean_list(mbean_list) %}
@@ -52,187 +46,189 @@
             Host "localhost"
             ServiceURL "service:jmx:rmi:///jndi/rmi://localhost:{{port}}/jmxrmi"
             {% for context, mbean_name, jmx_obj_name, metric_list in mbean_list %}
+						{% if mbean_name in service_list %}
             Collect "{{mbean_name}}"
+						{% endif %}
             {% endfor %}
         </Connection>
         {{ caller() }}
 {% endmacro %}
 
 {% set namenode_activity_metric_list = [
-    ("namenode", "CreateFileOps", "counter"),
-    ("namenode", "FilesCreated", "counter"),
-    ("namenode", "FilesAppended", "counter"),
-    ("namenode", "GetBlockLocations", "counter"),
-    ("namenode", "FilesRenamed", "counter"),
-    ("namenode", "GetListingOps", "counter"),
-    ("namenode", "DeleteFileOps", "counter"),
-    ("namenode", "FilesDeleted", "counter"),
-    ("namenode", "FileInfoOps", "counter"),
-    ("namenode", "AddBlockOps", "counter"),
-    ("namenode", "GetAdditionalDatanodeOps", "counter"),
-    ("namenode", "CreateSymlinkOps", "counter"),
-    ("namenode", "GetLinkTargetOps", "counter"),
-    ("namenode", "FilesInGetListingOps", "counter"),
-    ("namenode", "AllowSnapshotOps", "counter"),
-    ("namenode", "DisallowSnapshotOps", "counter"),
-    ("namenode", "CreateSnapshotOps", "counter"),
-    ("namenode", "DeleteSnapshotOps", "counter"),
-    ("namenode", "RenameSnapshotOps", "counter"),
-    ("namenode", "ListSnapshottableDirOps", "counter"),
-    ("namenode", "SnapshotDiffReportOps", "counter"),
-    ("namenode", "TransactionsNumOps", "counter"),
-    ("namenode", "TransactionsAvgTime", "counter"),
-    ("namenode", "SyncsNumOps", "counter"),
-    ("namenode", "SyncsAvgTime", "counter"),
-    ("namenode", "TransactionsBatchedInSync", "counter"),
-    ("namenode", "BlockReportNumOps", "counter"),
-    ("namenode", "BlockReportAvgTime", "time"),
-    ("namenode", "CacheReportNumOps", "counter"),
-    ("namenode", "CacheReportAvgTime", "time"),
-    ("namenode", "SafeModeTime", "time"),
-    ("namenode", "FsImageLoadTime", "time"),
-    ("namenode", "FsImageLoadTime", "time"),
-    ("namenode", "GetEditNumOps", "counter"),
-    ("namenode", "GetEditAvgTime", "time"),
-    ("namenode", "GetImageNumOps", "counter"),
-    ("namenode", "GetImageAvgTime", "time"),
-    ("namenode", "PutImageNumOps", "counter"),
-    ("namenode", "PutImageAvgTime", "time")
+    ("CreateFileOps", "counter"),
+    ("FilesCreated", "counter"),
+    ("FilesAppended", "counter"),
+    ("GetBlockLocations", "counter"),
+    ("FilesRenamed", "counter"),
+    ("GetListingOps", "counter"),
+    ("DeleteFileOps", "counter"),
+    ("FilesDeleted", "counter"),
+    ("FileInfoOps", "counter"),
+    ("AddBlockOps", "counter"),
+    ("GetAdditionalDatanodeOps", "counter"),
+    ("CreateSymlinkOps", "counter"),
+    ("GetLinkTargetOps", "counter"),
+    ("FilesInGetListingOps", "counter"),
+    ("AllowSnapshotOps", "counter"),
+    ("DisallowSnapshotOps", "counter"),
+    ("CreateSnapshotOps", "counter"),
+    ("DeleteSnapshotOps", "counter"),
+    ("RenameSnapshotOps", "counter"),
+    ("ListSnapshottableDirOps", "counter"),
+    ("SnapshotDiffReportOps", "counter"),
+    ("TransactionsNumOps", "counter"),
+    ("TransactionsAvgTime", "counter"),
+    ("SyncsNumOps", "counter"),
+    ("SyncsAvgTime", "counter"),
+    ("TransactionsBatchedInSync", "counter"),
+    ("BlockReportNumOps", "counter"),
+    ("BlockReportAvgTime", "time"),
+    ("CacheReportNumOps", "counter"),
+    ("CacheReportAvgTime", "time"),
+    ("SafeModeTime", "time"),
+    ("FsImageLoadTime", "time"),
+    ("FsImageLoadTime", "time"),
+    ("GetEditNumOps", "counter"),
+    ("GetEditAvgTime", "time"),
+    ("GetImageNumOps", "counter"),
+    ("GetImageAvgTime", "time"),
+    ("PutImageNumOps", "counter"),
+    ("PutImageAvgTime", "time")
 ]%}
 
 {% set fs_name_system_metric_list = [
-    ("FSNamesystem", "MissingBlocks", "gauge"),
-    ("FSNamesystem", "ExpiredHeartbeats", "counter"),
-    ("FSNamesystem", "TransactionsSinceLastCheckpoint", "counter"),
-    ("FSNamesystem", "TransactionsSinceLastLogRoll", "counter"),
-    ("FSNamesystem", "LastWrittenTransactionId", "gauge"),
-    ("FSNamesystem", "LastCheckpointTime", "time"),
-    ("FSNamesystem", "CapacityTotal", "gauge"),
-    ("FSNamesystem", "CapacityTotalGB", "gauge"),
-    ("FSNamesystem", "CapacityUsed", "gauge"),
-    ("FSNamesystem", "CapacityUsedGB", "gauge"),
-    ("FSNamesystem", "CapacityRemaining", "gauge"),
-    ("FSNamesystem", "CapacityRemainingGB", "gauge"),
-    ("FSNamesystem", "CapacityUsedNonDFS", "gauge"),
-    ("FSNamesystem", "TotalLoad", "gauge"),
-    ("FSNamesystem", "SnapshottableDirectories", "gauge"),
-    ("FSNamesystem", "Snapshots", "gauge"),
-    ("FSNamesystem", "BlocksTotal", "gauge"),
-    ("FSNamesystem", "FilesTotal", "gauge"),
-    ("FSNamesystem", "PendingReplicationBlocks", "gauge"),
-    ("FSNamesystem", "UnderReplicatedBlocks", "gauge"),
-    ("FSNamesystem", "CorruptBlocks", "gauge"),
-    ("FSNamesystem", "ScheduledReplicationBlocks", "gauge"),
-    ("FSNamesystem", "PendingDeletionBlocks", "gauge"),
-    ("FSNamesystem", "ExcessBlocks", "gauge"),
-    ("FSNamesystem", "PostponedMisreplicatedBlocks", "gauge"),
-    ("FSNamesystem", "PendingDataNodeMessageCourt", "gauge"),
-    ("FSNamesystem", "MillisSinceLastLoadedEdits", "time"),
-    ("FSNamesystem", "BlockCapacity", "gauge"),
-    ("FSNamesystem", "StaleDataNodes", "gauge"),
-    ("FSNamesystem", "TotalFiles", "gauge")
+    ("MissingBlocks", "gauge"),
+    ("ExpiredHeartbeats", "counter"),
+    ("TransactionsSinceLastCheckpoint", "counter"),
+    ("TransactionsSinceLastLogRoll", "counter"),
+    ("LastWrittenTransactionId", "gauge"),
+    ("LastCheckpointTime", "time"),
+    ("CapacityTotal", "gauge"),
+    ("CapacityTotalGB", "gauge"),
+    ("CapacityUsed", "gauge"),
+    ("CapacityUsedGB", "gauge"),
+    ("CapacityRemaining", "gauge"),
+    ("CapacityRemainingGB", "gauge"),
+    ("CapacityUsedNonDFS", "gauge"),
+    ("TotalLoad", "gauge"),
+    ("SnapshottableDirectories", "gauge"),
+    ("Snapshots", "gauge"),
+    ("BlocksTotal", "gauge"),
+    ("FilesTotal", "gauge"),
+    ("PendingReplicationBlocks", "gauge"),
+    ("UnderReplicatedBlocks", "gauge"),
+    ("CorruptBlocks", "gauge"),
+    ("ScheduledReplicationBlocks", "gauge"),
+    ("PendingDeletionBlocks", "gauge"),
+    ("ExcessBlocks", "gauge"),
+    ("PostponedMisreplicatedBlocks", "gauge"),
+    ("PendingDataNodeMessageCourt", "gauge"),
+    ("MillisSinceLastLoadedEdits", "time"),
+    ("BlockCapacity", "gauge"),
+    ("StaleDataNodes", "gauge"),
+    ("TotalFiles", "gauge")
 ]%}
 
 {% set datanode_activity_metric_list = [
-    ("datanode", "BytesWritten", "counter"),
-    ("datanode", "BytesRead", "counter"),
-    ("datanode", "BlocksWritten", "counter"),
-    ("datanode", "BlocksRead", "counter"),
-    ("datanode", "BlocksReplicated", "counter"),
-    ("datanode", "BlocksRemoved", "counter"),
-    ("datanode", "BlocksVerified", "counter"),
-    ("datanode", "BlockVerificationFailures", "counter"),
-    ("datanode", "BlocksCached", "counter"),
-    ("datanode", "BlocksUncached", "counter"),
-    ("datanode", "ReadsFromLocalClient", "counter"),
-    ("datanode", "ReadsFromRemoteClient", "counter"),
-    ("datanode", "WritesFromLocalClient", "counter"),
-    ("datanode", "WritesFromRemoteClient", "counter"),
-    ("datanode", "BlocksGetLocalPathInfo", "counter"),
-    ("datanode", "FsyncCount", "counter"),
-    ("datanode", "VolumeFailures", "counter"),
-    ("datanode", "ReadBlockOpNumOps", "counter"),
-    ("datanode", "ReadBlockOpAvgTime", "time"),
-    ("datanode", "WriteBlockOpNumOps", "counter"),
-    ("datanode", "WriteBlockOpAvgTime", "time"),
-    ("datanode", "BlockChecksumOpNumOps", "counter"),
-    ("datanode", "BlockChecksumOpAvgTime", "time"),
-    ("datanode", "CopyBlockOpNumOps", "counter"),
-    ("datanode", "CopyBlockOpAvgTime", "time"),
-    ("datanode", "ReplaceBlockOpNumOps", "counter"),
-    ("datanode", "ReplaceBlockOpAvgTime", "time"),
-    ("datanode", "HeartbeatsNumOps", "counter"),
-    ("datanode", "HeartbeatsAvgTime", "time"),
-    ("datanode", "BlockReportsNumOps", "counter"),
-    ("datanode", "BlockReportsAvgTime", "time"),
-    ("datanode", "IncrementalBlockReportsNumOps", "counter"),
-    ("datanode", "IncrementalBlockReportsAvgTime", "time"),
-    ("datanode", "CacheReportsNumOps", "counter"),
-    ("datanode", "CacheReportsAvgTime", "time"),
-    ("datanode", "PacketAckRoundTripTimeNanosNumOps", "counter"),
-    ("datanode", "PacketAckRoundTripTimeNanosAvgTime", "time"),
-    ("datanode", "FlushNanosNumOps", "counter"),
-    ("datanode", "FlushNanosAvgTime", "time"),
-    ("datanode", "FsyncNanosNumOps", "counter"),
-    ("datanode", "FsyncNanosAvgTime", "time"),
-    ("datanode", "SendDataPacketBlockedOnNetworkNanosNumOps", "counter"),
-    ("datanode", "SendDataPacketBlockedOnNetworkNanosAvgTime", "time"),
-    ("datanode", "SendDataPacketTransferNanosNumOps", "counter"),
-    ("datanode", "SendDataPacketTransferNanosAvgTime", "time")
+    ("BytesWritten", "counter"),
+    ("BytesRead", "counter"),
+    ("BlocksWritten", "counter"),
+    ("BlocksRead", "counter"),
+    ("BlocksReplicated", "counter"),
+    ("BlocksRemoved", "counter"),
+    ("BlocksVerified", "counter"),
+    ("BlockVerificationFailures", "counter"),
+    ("BlocksCached", "counter"),
+    ("BlocksUncached", "counter"),
+    ("ReadsFromLocalClient", "counter"),
+    ("ReadsFromRemoteClient", "counter"),
+    ("WritesFromLocalClient", "counter"),
+    ("WritesFromRemoteClient", "counter"),
+    ("BlocksGetLocalPathInfo", "counter"),
+    ("FsyncCount", "counter"),
+    ("VolumeFailures", "counter"),
+    ("ReadBlockOpNumOps", "counter"),
+    ("ReadBlockOpAvgTime", "time"),
+    ("WriteBlockOpNumOps", "counter"),
+    ("WriteBlockOpAvgTime", "time"),
+    ("BlockChecksumOpNumOps", "counter"),
+    ("BlockChecksumOpAvgTime", "time"),
+    ("CopyBlockOpNumOps", "counter"),
+    ("CopyBlockOpAvgTime", "time"),
+    ("ReplaceBlockOpNumOps", "counter"),
+    ("ReplaceBlockOpAvgTime", "time"),
+    ("HeartbeatsNumOps", "counter"),
+    ("HeartbeatsAvgTime", "time"),
+    ("BlockReportsNumOps", "counter"),
+    ("BlockReportsAvgTime", "time"),
+    ("IncrementalBlockReportsNumOps", "counter"),
+    ("IncrementalBlockReportsAvgTime", "time"),
+    ("CacheReportsNumOps", "counter"),
+    ("CacheReportsAvgTime", "time"),
+    ("PacketAckRoundTripTimeNanosNumOps", "counter"),
+    ("PacketAckRoundTripTimeNanosAvgTime", "time"),
+    ("FlushNanosNumOps", "counter"),
+    ("FlushNanosAvgTime", "time"),
+    ("FsyncNanosNumOps", "counter"),
+    ("FsyncNanosAvgTime", "time"),
+    ("SendDataPacketBlockedOnNetworkNanosNumOps", "counter"),
+    ("SendDataPacketBlockedOnNetworkNanosAvgTime", "time"),
+    ("SendDataPacketTransferNanosNumOps", "counter"),
+    ("SendDataPacketTransferNanosAvgTime", "time")
 ]%}
 
 {% set cluster_metrics_list = [
-    ("ClusterMetrics", "NumActiveNMs", "gauge"),
-    ("ClusterMetrics", "NumDecommissionedNMs", "gauge"),
-    ("ClusterMetrics", "NumLostNMs", "gauge"),
-    ("ClusterMetrics", "NumUnhealthyNMs", "gauge"),
-    ("ClusterMetrics", "NumRebootedNMs", "gauge")
+    ("NumActiveNMs", "gauge"),
+    ("NumDecommissionedNMs", "gauge"),
+    ("NumLostNMs", "gauge"),
+    ("NumUnhealthyNMs", "gauge"),
+    ("NumRebootedNMs", "gauge")
 ]%}
 
 {% set queue_metrics_list = [
-    ("QueueMetrics", "running_0", "gauge"),
-    ("QueueMetrics", "running_60", "gauge"),
-    ("QueueMetrics", "running_300", "gauge"),
-    ("QueueMetrics", "running_1440", "gauge"),
-    ("QueueMetrics", "AppsSubmitted", "counter"),
-    ("QueueMetrics", "AppsRunning", "gauge"),
-    ("QueueMetrics", "AppsPending", "gauge"),
-    ("QueueMetrics", "AppsCompleted", "counter"),
-    ("QueueMetrics", "AppsKilled", "counter"),
-    ("QueueMetrics", "AppsFailed", "counter"),
-    ("QueueMetrics", "AllocatedMB", "gauge"),
-    ("QueueMetrics", "AllocatedVCores", "gauge"),
-    ("QueueMetrics", "AllocatedContainers", "gauge"),
-    ("QueueMetrics", "AggregateContainersAllocated", "counter"),
-    ("QueueMetrics", "AggregateContainersReleased", "counter"),
-    ("QueueMetrics", "AvailableMB", "gauge"),
-    ("QueueMetrics", "AvailableVCores", "gauge"),
-    ("QueueMetrics", "PendingMB", "gauge"),
-    ("QueueMetrics", "PendingVCores", "gauge"),
-    ("QueueMetrics", "PendingContainers", "gauge"),
-    ("QueueMetrics", "ReservedMB", "gauge"),
-    ("QueueMetrics", "ReservedVCores", "gauge"),
-    ("QueueMetrics", "ReservedContainers", "gauge"),
-    ("QueueMetrics", "ActiveUsers", "gauge"),
-    ("QueueMetrics", "ActiveApplications", "gauge"),
-    ("QueueMetrics", "FairShareMB", "gauge"),
-    ("QueueMetrics", "FairShareVCores", "gauge"),
-    ("QueueMetrics", "MinShareMB", "gauge"),
-    ("QueueMetrics", "MinShareVCores", "gauge"),
-    ("QueueMetrics", "MaxShareMB", "gauge"),
-    ("QueueMetrics", "MaxShareVCores", "gauge")
+    ("running_0", "gauge"),
+    ("running_60", "gauge"),
+    ("running_300", "gauge"),
+    ("running_1440", "gauge"),
+    ("AppsSubmitted", "counter"),
+    ("AppsRunning", "gauge"),
+    ("AppsPending", "gauge"),
+    ("AppsCompleted", "counter"),
+    ("AppsKilled", "counter"),
+    ("AppsFailed", "counter"),
+    ("AllocatedMB", "gauge"),
+    ("AllocatedVCores", "gauge"),
+    ("AllocatedContainers", "gauge"),
+    ("AggregateContainersAllocated", "counter"),
+    ("AggregateContainersReleased", "counter"),
+    ("AvailableMB", "gauge"),
+    ("AvailableVCores", "gauge"),
+    ("PendingMB", "gauge"),
+    ("PendingVCores", "gauge"),
+    ("PendingContainers", "gauge"),
+    ("ReservedMB", "gauge"),
+    ("ReservedVCores", "gauge"),
+    ("ReservedContainers", "gauge"),
+    ("ActiveUsers", "gauge"),
+    ("ActiveApplications", "gauge"),
+    ("FairShareMB", "gauge"),
+    ("FairShareVCores", "gauge"),
+    ("MinShareMB", "gauge"),
+    ("MinShareVCores", "gauge"),
+    ("MaxShareMB", "gauge"),
+    ("MaxShareVCores", "gauge")
 ]%}
 
 {% set nodemanager_metrics_list = [
-    ("NodeManagerMetrics", "containersLaunched", "counter"),
-    ("NodeManagerMetrics", "containersCompleted", "counter"),
-    ("NodeManagerMetrics", "containersFailed", "counter"),
-    ("NodeManagerMetrics", "containersKilled", "counter"),
-    ("NodeManagerMetrics", "containersIniting", "gauge"),
-    ("NodeManagerMetrics", "containersRunning", "gauge"),
-    ("NodeManagerMetrics", "allocatedContainers", "gauge"),
-    ("NodeManagerMetrics", "allocatedGB", "gauge"),
-    ("NodeManagerMetrics", "availableGB", "gauge")
+    ("containersLaunched", "counter"),
+    ("containersCompleted", "counter"),
+    ("containersFailed", "counter"),
+    ("containersKilled", "counter"),
+    ("containersIniting", "gauge"),
+    ("containersRunning", "gauge"),
+    ("allocatedContainers", "gauge"),
+    ("allocatedGB", "gauge"),
+    ("availableGB", "gauge")
 ]%}
 
 {% set hdfs_mbean_list = [
@@ -277,7 +273,7 @@ LoadPlugin target_replace
         </Target>
         <Target "set">
             MetaData "stackdriver_metric_type" "custom.googleapis.com/%{plugin_instance}/%{type_instance}"
-            # MetaData "label:service_name" "dataproc"
+            MetaData "label:instance_name" "HOSTNAME"
         </Target>
 
     </Rule>
