@@ -19,7 +19,7 @@
     {{ caller() }}
 {% endmacro %}
 
-{% macro create_mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+{% macro create_mbean_internal(context, mbean_name, jmx_obj_name, metric_list) %}
         <MBean "{{mbean_name}}">
             ObjectName "{{jmx_obj_name}}"
             InstancePrefix = "{{context}}/"
@@ -28,6 +28,15 @@
             {% endcall %}
         </MBean>
         {{ caller() }}
+{% endmacro %}
+
+{% macro create_mbean(context, mbean_name, jmx_obj_name, metric_list) %}
+    {% for type, attribute in metric_list %}
+        {% if attribute in upload_list %}
+            create_mbean_internal(context, mbean_name, jmx_obj_name, metric_list)
+            
+        {% endif %}
+    {% endfor %}
 {% endmacro %}
 
 {% macro create_mbean_list(mbean_list) %}
@@ -92,138 +101,138 @@
 ]%}
 
 {% set fs_name_system_metric_list = [
-    ("gauge", "MissingBlocks"),
-    ("counter", "ExpiredHeartbeats"),
-    ("counter", "TransactionsSinceLastCheckpoint"),
-    ("counter", "TransactionsSinceLastLogRoll"),
-    ("gauge", "LastWrittenTransactionId"),
-    ("time", "LastCheckpointTime"),
-    ("gauge", "CapacityTotal"),
-    ("gauge", "CapacityTotalGB"),
-    ("gauge", "CapacityUsed"),
-    ("gauge", "CapacityUsedGB"),
-    ("gauge", "CapacityRemaining"),
-    ("gauge", "CapacityRemainingGB"),
-    ("gauge", "CapacityUsedNonDFS"),
-    ("gauge", "TotalLoad"),
-    ("gauge", "SnapshottableDirectories"),
-    ("gauge", "Snapshots"),
-    ("gauge", "BlocksTotal"),
-    ("gauge", "FilesTotal"),
-    ("gauge", "PendingReplicationBlocks"),
-    ("gauge", "UnderReplicatedBlocks"),
-    ("gauge", "CorruptBlocks"),
-    ("gauge", "ScheduledReplicationBlocks"),
-    ("gauge", "PendingDeletionBlocks"),
-    ("gauge", "ExcessBlocks"),
-    ("gauge", "PostponedMisreplicatedBlocks"),
-    ("gauge", "PendingDataNodeMessageCourt"),
-    ("time", "MillisSinceLastLoadedEdits"),
-    ("gauge", "BlockCapacity"),
-    ("gauge", "StaleDataNodes"),
-    ("gauge", "TotalFiles")
+    ("FSNamesystem", "MissingBlocks", "gauge"),
+    ("FSNamesystem", "ExpiredHeartbeats", "counter"),
+    ("FSNamesystem", "TransactionsSinceLastCheckpoint", "counter"),
+    ("FSNamesystem", "TransactionsSinceLastLogRoll", "counter"),
+    ("FSNamesystem", "LastWrittenTransactionId", "gauge"),
+    ("FSNamesystem", "LastCheckpointTime", "time"),
+    ("FSNamesystem", "CapacityTotal", "gauge"),
+    ("FSNamesystem", "CapacityTotalGB", "gauge"),
+    ("FSNamesystem", "CapacityUsed", "gauge"),
+    ("FSNamesystem", "CapacityUsedGB", "gauge"),
+    ("FSNamesystem", "CapacityRemaining", "gauge"),
+    ("FSNamesystem", "CapacityRemainingGB", "gauge"),
+    ("FSNamesystem", "CapacityUsedNonDFS", "gauge"),
+    ("FSNamesystem", "TotalLoad", "gauge"),
+    ("FSNamesystem", "SnapshottableDirectories", "gauge"),
+    ("FSNamesystem", "Snapshots", "gauge"),
+    ("FSNamesystem", "BlocksTotal", "gauge"),
+    ("FSNamesystem", "FilesTotal", "gauge"),
+    ("FSNamesystem", "PendingReplicationBlocks", "gauge"),
+    ("FSNamesystem", "UnderReplicatedBlocks", "gauge"),
+    ("FSNamesystem", "CorruptBlocks", "gauge"),
+    ("FSNamesystem", "ScheduledReplicationBlocks", "gauge"),
+    ("FSNamesystem", "PendingDeletionBlocks", "gauge"),
+    ("FSNamesystem", "ExcessBlocks", "gauge"),
+    ("FSNamesystem", "PostponedMisreplicatedBlocks", "gauge"),
+    ("FSNamesystem", "PendingDataNodeMessageCourt", "gauge"),
+    ("FSNamesystem", "MillisSinceLastLoadedEdits", "time"),
+    ("FSNamesystem", "BlockCapacity", "gauge"),
+    ("FSNamesystem", "StaleDataNodes", "gauge"),
+    ("FSNamesystem", "TotalFiles", "gauge")
 ]%}
 
 {% set datanode_activity_metric_list = [
-    ("counter", "BytesWritten"),
-    ("counter", "BytesRead"),
-    ("counter", "BlocksWritten"),
-    ("counter", "BlocksRead"),
-    ("counter", "BlocksReplicated"),
-    ("counter", "BlocksRemoved"),
-    ("counter", "BlocksVerified"),
-    ("counter", "BlockVerificationFailures"),
-    ("counter", "BlocksCached"),
-    ("counter", "BlocksUncached"),
-    ("counter", "ReadsFromLocalClient"),
-    ("counter", "ReadsFromRemoteClient"),
-    ("counter", "WritesFromLocalClient"),
-    ("counter", "WritesFromRemoteClient"),
-    ("counter", "BlocksGetLocalPathInfo"),
-    ("counter", "FsyncCount"),
-    ("counter", "VolumeFailures"),
-    ("counter", "ReadBlockOpNumOps"),
-    ("time", "ReadBlockOpAvgTime"),
-    ("counter", "WriteBlockOpNumOps"),
-    ("time", "WriteBlockOpAvgTime"),
-    ("counter", "BlockChecksumOpNumOps"),
-    ("time", "BlockChecksumOpAvgTime"),
-    ("counter", "CopyBlockOpNumOps"),
-    ("time", "CopyBlockOpAvgTime"),
-    ("counter", "ReplaceBlockOpNumOps"),
-    ("time", "ReplaceBlockOpAvgTime"),
-    ("counter", "HeartbeatsNumOps"),
-    ("time", "HeartbeatsAvgTime"),
-    ("counter", "BlockReportsNumOps"),
-    ("time", "BlockReportsAvgTime"),
-    ("counter", "IncrementalBlockReportsNumOps"),
-    ("time", "IncrementalBlockReportsAvgTime"),
-    ("counter", "CacheReportsNumOps"),
-    ("time", "CacheReportsAvgTime"),
-    ("counter", "PacketAckRoundTripTimeNanosNumOps"),
-    ("time", "PacketAckRoundTripTimeNanosAvgTime"),
-    ("counter", "FlushNanosNumOps"),
-    ("time", "FlushNanosAvgTime"),
-    ("counter", "FsyncNanosNumOps"),
-    ("time", "FsyncNanosAvgTime"),
-    ("counter", "SendDataPacketBlockedOnNetworkNanosNumOps"),
-    ("time", "SendDataPacketBlockedOnNetworkNanosAvgTime"),
-    ("counter", "SendDataPacketTransferNanosNumOps"),
-    ("time", "SendDataPacketTransferNanosAvgTime")
+    ("datanode", "BytesWritten", "counter"),
+    ("datanode", "BytesRead", "counter"),
+    ("datanode", "BlocksWritten", "counter"),
+    ("datanode", "BlocksRead", "counter"),
+    ("datanode", "BlocksReplicated", "counter"),
+    ("datanode", "BlocksRemoved", "counter"),
+    ("datanode", "BlocksVerified", "counter"),
+    ("datanode", "BlockVerificationFailures", "counter"),
+    ("datanode", "BlocksCached", "counter"),
+    ("datanode", "BlocksUncached", "counter"),
+    ("datanode", "ReadsFromLocalClient", "counter"),
+    ("datanode", "ReadsFromRemoteClient", "counter"),
+    ("datanode", "WritesFromLocalClient", "counter"),
+    ("datanode", "WritesFromRemoteClient", "counter"),
+    ("datanode", "BlocksGetLocalPathInfo", "counter"),
+    ("datanode", "FsyncCount", "counter"),
+    ("datanode", "VolumeFailures", "counter"),
+    ("datanode", "ReadBlockOpNumOps", "counter"),
+    ("datanode", "ReadBlockOpAvgTime", "time"),
+    ("datanode", "WriteBlockOpNumOps", "counter"),
+    ("datanode", "WriteBlockOpAvgTime", "time"),
+    ("datanode", "BlockChecksumOpNumOps", "counter"),
+    ("datanode", "BlockChecksumOpAvgTime", "time"),
+    ("datanode", "CopyBlockOpNumOps", "counter"),
+    ("datanode", "CopyBlockOpAvgTime", "time"),
+    ("datanode", "ReplaceBlockOpNumOps", "counter"),
+    ("datanode", "ReplaceBlockOpAvgTime", "time"),
+    ("datanode", "HeartbeatsNumOps", "counter"),
+    ("datanode", "HeartbeatsAvgTime", "time"),
+    ("datanode", "BlockReportsNumOps", "counter"),
+    ("datanode", "BlockReportsAvgTime", "time"),
+    ("datanode", "IncrementalBlockReportsNumOps", "counter"),
+    ("datanode", "IncrementalBlockReportsAvgTime", "time"),
+    ("datanode", "CacheReportsNumOps", "counter"),
+    ("datanode", "CacheReportsAvgTime", "time"),
+    ("datanode", "PacketAckRoundTripTimeNanosNumOps", "counter"),
+    ("datanode", "PacketAckRoundTripTimeNanosAvgTime", "time"),
+    ("datanode", "FlushNanosNumOps", "counter"),
+    ("datanode", "FlushNanosAvgTime", "time"),
+    ("datanode", "FsyncNanosNumOps", "counter"),
+    ("datanode", "FsyncNanosAvgTime", "time"),
+    ("datanode", "SendDataPacketBlockedOnNetworkNanosNumOps", "counter"),
+    ("datanode", "SendDataPacketBlockedOnNetworkNanosAvgTime", "time"),
+    ("datanode", "SendDataPacketTransferNanosNumOps", "counter"),
+    ("datanode", "SendDataPacketTransferNanosAvgTime", "time")
 ]%}
 
 {% set cluster_metrics_list = [
-    ("gauge", "NumActiveNMs"),
-    ("gauge", "NumDecommissionedNMs"),
-    ("gauge", "NumLostNMs"),
-    ("gauge", "NumUnhealthyNMs"),
-    ("gauge", "NumRebootedNMs")
+    ("ClusterMetrics", "NumActiveNMs", "gauge"),
+    ("ClusterMetrics", "NumDecommissionedNMs", "gauge"),
+    ("ClusterMetrics", "NumLostNMs", "gauge"),
+    ("ClusterMetrics", "NumUnhealthyNMs", "gauge"),
+    ("ClusterMetrics", "NumRebootedNMs", "gauge")
 ]%}
 
 {% set queue_metrics_list = [
-    ("gauge", "running_0"),
-    ("gauge", "running_60"),
-    ("gauge", "running_300"),
-    ("gauge", "running_1440"),
-    ("counter", "AppsSubmitted"),
-    ("gauge", "AppsRunning"),
-    ("gauge", "AppsPending"),
-    ("counter", "AppsCompleted"),
-    ("counter", "AppsKilled"),
-    ("counter", "AppsFailed"),
-    ("gauge", "AllocatedMB"),
-    ("gauge", "AllocatedVCores"),
-    ("gauge", "AllocatedContainers"),
-    ("counter", "AggregateContainersAllocated"),
-    ("counter", "AggregateContainersReleased"),
-    ("gauge", "AvailableMB"),
-    ("gauge", "AvailableVCores"),
-    ("gauge", "PendingMB"),
-    ("gauge", "PendingVCores"),
-    ("gauge", "PendingContainers"),
-    ("gauge", "ReservedMB"),
-    ("gauge", "ReservedVCores"),
-    ("gauge", "ReservedContainers"),
-    ("gauge", "ActiveUsers"),
-    ("gauge", "ActiveApplications"),
-    ("gauge", "FairShareMB"),
-    ("gauge", "FairShareVCores"),
-    ("gauge", "MinShareMB"),
-    ("gauge", "MinShareVCores"),
-    ("gauge", "MaxShareMB"),
-    ("gauge", "MaxShareVCores")
+    ("QueueMetrics", "running_0", "gauge"),
+    ("QueueMetrics", "running_60", "gauge"),
+    ("QueueMetrics", "running_300", "gauge"),
+    ("QueueMetrics", "running_1440", "gauge"),
+    ("QueueMetrics", "AppsSubmitted", "counter"),
+    ("QueueMetrics", "AppsRunning", "gauge"),
+    ("QueueMetrics", "AppsPending", "gauge"),
+    ("QueueMetrics", "AppsCompleted", "counter"),
+    ("QueueMetrics", "AppsKilled", "counter"),
+    ("QueueMetrics", "AppsFailed", "counter"),
+    ("QueueMetrics", "AllocatedMB", "gauge"),
+    ("QueueMetrics", "AllocatedVCores", "gauge"),
+    ("QueueMetrics", "AllocatedContainers", "gauge"),
+    ("QueueMetrics", "AggregateContainersAllocated", "counter"),
+    ("QueueMetrics", "AggregateContainersReleased", "counter"),
+    ("QueueMetrics", "AvailableMB", "gauge"),
+    ("QueueMetrics", "AvailableVCores", "gauge"),
+    ("QueueMetrics", "PendingMB", "gauge"),
+    ("QueueMetrics", "PendingVCores", "gauge"),
+    ("QueueMetrics", "PendingContainers", "gauge"),
+    ("QueueMetrics", "ReservedMB", "gauge"),
+    ("QueueMetrics", "ReservedVCores", "gauge"),
+    ("QueueMetrics", "ReservedContainers", "gauge"),
+    ("QueueMetrics", "ActiveUsers", "gauge"),
+    ("QueueMetrics", "ActiveApplications", "gauge"),
+    ("QueueMetrics", "FairShareMB", "gauge"),
+    ("QueueMetrics", "FairShareVCores", "gauge"),
+    ("QueueMetrics", "MinShareMB", "gauge"),
+    ("QueueMetrics", "MinShareVCores", "gauge"),
+    ("QueueMetrics", "MaxShareMB", "gauge"),
+    ("QueueMetrics", "MaxShareVCores", "gauge")
 ]%}
 
 {% set nodemanager_metrics_list = [
-    ("counter", "containersLaunched"),
-    ("counter", "containersCompleted"),
-    ("counter", "containersFailed"),
-    ("counter", "containersKilled"),
-    ("gauge", "containersIniting"),
-    ("gauge", "containersRunning"),
-    ("gauge", "allocatedContainers"),
-    ("gauge", "allocatedGB"),
-    ("gauge", "availableGB")
+    ("NodeManagerMetrics", "containersLaunched", "counter"),
+    ("NodeManagerMetrics", "containersCompleted", "counter"),
+    ("NodeManagerMetrics", "containersFailed", "counter"),
+    ("NodeManagerMetrics", "containersKilled", "counter"),
+    ("NodeManagerMetrics", "containersIniting", "gauge"),
+    ("NodeManagerMetrics", "containersRunning", "gauge"),
+    ("NodeManagerMetrics", "allocatedContainers", "gauge"),
+    ("NodeManagerMetrics", "allocatedGB", "gauge"),
+    ("NodeManagerMetrics", "availableGB", "gauge")
 ]%}
 
 {% set hdfs_mbean_list = [
@@ -248,11 +257,11 @@ LoadPlugin target_replace
 
     <Plugin "GenericJMX">
 
-        {% call create_mbean(hdfs_mbean_list) %}{% endcall %}
-        {% call create_mbean(yarn_mbean_list) %}{% endcall %}
+        {% call create_mbean_list(hdfs_mbean_list) %}{% endcall %}
+        {% call create_mbean_list(yarn_mbean_list) %}{% endcall %}
         
-        {% call connection(8551, hdfs_mbean_list)%}{% endcall %}
-        {% call connection(8554, yarn_mbean_list)%}{% endcall %}
+        {% call create_connection(8551, hdfs_mbean_list)%}{% endcall %}
+        {% call create_connection(8554, yarn_mbean_list)%}{% endcall %}
 
      </Plugin>
 </Plugin>

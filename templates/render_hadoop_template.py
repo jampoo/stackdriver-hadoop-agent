@@ -6,12 +6,17 @@ import argparse
 
 hadoop_template = 'hadoop-custom-metrics.conf.jinja'
 
+
 def read_metric_list_from_textfile(text_file):
+    services = {}
     hadoop_metrics_upload_list = []
     for line in text_file.readlines():
-        metric_name = line.split('.')[-1].strip()
-        hadoop_metrics_upload_list.append(metric_name)
-    return hadoop_metrics_upload_list
+        # TODO(zhanbo): verify the format
+        service_attribute = line.split('.')
+        service = substrs[0]
+        services.add(service)
+        hadoop_metrics_upload_list.append(service_attribute)
+    return (services, hadoop_metrics_upload_list)
 
 def create_stackdriver_plugin(metric_list, templates_dir):
     env = jinja2.Environment(
@@ -21,6 +26,7 @@ def create_stackdriver_plugin(metric_list, templates_dir):
         extensions=['jinja2.ext.do'])
 
     print env.get_template(hadoop_template).render(upload_list = metric_list)
+    
 
 def main():
     parser = argparse.ArgumentParser(
@@ -30,8 +36,8 @@ def main():
         default='/usr/local/share/google/dataproc/jinja/templates/')
     args = parser.parse_args()
     if args.whitelist is not None:
-        metric_list = read_metric_list_from_textfile(args.whitelist)
-        create_stackdriver_plugin(metric_list, args.templates_dir)
+        result = read_metric_list_from_textfile(args.whitelist)
+        create_stackdriver_plugin(metric_list, parse_resultargs.templates_dir)
 
 if __name__ == "__main__":
     main()

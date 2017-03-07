@@ -5,7 +5,7 @@ import os.path
 import sys
 
 file_path = "./jinja-metric-raw.csv"
-jinja_metric_format = '    ("%s", "%s", "%s"),'
+jinja_metric_format = '("%s", "%s", "%s"),'
 
 def main() :
     with open(file_path, 'rb') as csv_file:
